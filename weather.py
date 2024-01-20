@@ -27,6 +27,7 @@ def get_Entry_Value():
         city_name = data['name']
         weather = data['weather'][0]['description']
         temperature = round(data["main"]["temp"] - 273.15, 2)
+        icon = data['weather'][0]['icon']
 
         city_name_complete = "Location: " + city_name + "\n"
         weather_complete = "Weather: " + weather + "\n"
@@ -44,6 +45,26 @@ def get_Entry_Value():
         text_label2.pack()
         text_label3 = tk.Label(new_window, text=temperature_complete)
         text_label3.pack()
+        icons_url = f"{config.ICON_BASE_URL}?appid={config.API_KEY}&q={e_text}"
+        icons_response = requests.get(icons_url)
+        if 200 <= icons_response.status_code <= 232:
+            icon_display = tk.Label(new_window, image=icon)
+            icon_display.pack()
+        if 300 <= icons_response.status_code <= 321:
+            icon_display = tk.Label(new_window, image=icon)
+            icon_display.pack()
+        if 500 <= icons_response.status_code <= 531:
+            icon_display = tk.Label(new_window, image=icon)
+            icon_display.pack()
+        if 600 <= icons_response.status_code <= 622:
+            icon_display = tk.Label(new_window, image=icon)
+            icon_display.pack()
+        if 701 <= icons_response.status_code <= 781:
+            icon_display = tk.Label(new_window, image=icon)
+            icon_display.pack()
+        if icons_response.status_code == 800:
+            icon_display = tk.Label(new_window, image=icon)
+            icon_display.pack()
 
     label_one = tk.Label(window, text=str(["Location:", city_name, "\n"]))
     label_two = tk.Label(window, text=str(["Weather:", weather, "\n"]))
@@ -66,3 +87,4 @@ button.place(x=100, y=500)
 
 # open window
 window.mainloop()
+
