@@ -1,8 +1,11 @@
+import io
 import config
 import requests  # hit end points and gets weather data
+from PIL import Image, ImageTk
 import tkinter as tk
 from tkinter import ttk, RIGHT, LEFT
 from tkinter import messagebox
+from io import BytesIO
 
 # window
 window = tk.Tk()
@@ -45,26 +48,52 @@ def get_Entry_Value():
         text_label2.pack()
         text_label3 = tk.Label(new_window, text=temperature_complete)
         text_label3.pack()
-        icons_url = f"{config.ICON_BASE_URL}?appid={config.API_KEY}&q={e_text}"
-        icons_response = requests.get(icons_url)
+
+        # TODO: Implement the icons_response to display image 
+        # icons_url = f"{config.ICON_BASE_URL}?appid={config.API_KEY}&q={icon}.png"
+        icons_url = f"{config.ICON_BASE_URL}/{icon}@2x.png"
+        icons_response = requests.get(icons_url, stream=True)
+        # icon_bytes = BytesIO(icons_response.content)
+        # icons_response1 = Image.open(io.BytesIO(icons_response.content))
+
         if 200 <= icons_response.status_code <= 232:
-            icon_display = tk.Label(new_window, image=icon)
+            icons_response1 = Image.open(io.BytesIO(icons_response.content))
+            tk_image = ImageTk.PhotoImage(icons_response1)
+            icon_display = tk.Label(new_window, image=tk_image)
             icon_display.pack()
         if 300 <= icons_response.status_code <= 321:
-            icon_display = tk.Label(new_window, image=icon)
+            icons_response1 = Image.open(io.BytesIO(icons_response.content))
+            tk_image = ImageTk.PhotoImage(icons_response1)
+            icon_display = tk.Label(new_window, image=tk_image)
             icon_display.pack()
         if 500 <= icons_response.status_code <= 531:
-            icon_display = tk.Label(new_window, image=icon)
+            icons_response1 = Image.open(io.BytesIO(icons_response.content))
+            tk_image = ImageTk.PhotoImage(icons_response1)
+            icon_display = tk.Label(new_window, image=tk_image)
             icon_display.pack()
         if 600 <= icons_response.status_code <= 622:
-            icon_display = tk.Label(new_window, image=icon)
+            icons_response1 = Image.open(io.BytesIO(icons_response.content))
+            tk_image = ImageTk.PhotoImage(icons_response1)
+            icon_display = tk.Label(new_window, image=tk_image)
             icon_display.pack()
         if 701 <= icons_response.status_code <= 781:
-            icon_display = tk.Label(new_window, image=icon)
+            icons_response1 = Image.open(io.BytesIO(icons_response.content))
+            tk_image = ImageTk.PhotoImage(icons_response1)
+            icon_display = tk.Label(new_window, image=tk_image)
             icon_display.pack()
         if icons_response.status_code == 800:
-            icon_display = tk.Label(new_window, image=icon)
+            icons_response1 = Image.open(io.BytesIO(icons_response.content))
+            tk_image = ImageTk.PhotoImage(icons_response1)
+            icon_display = tk.Label(new_window, image=tk_image)
             icon_display.pack()
+        if 801 <= icons_response.status_code <= 804:
+            icons_response1 = Image.open(io.BytesIO(icons_response.content))
+            tk_image = ImageTk.PhotoImage(icons_response1)
+            icon_display = tk.Label(new_window, image=tk_image)
+            icon_display.pack()
+        else:
+            print(f"Failed to fetch image. Status code {icons_response.status_code}") # TODO: display error as a box
+            
 
     label_one = tk.Label(window, text=str(["Location:", city_name, "\n"]))
     label_two = tk.Label(window, text=str(["Weather:", weather, "\n"]))
@@ -87,4 +116,3 @@ button.place(x=100, y=500)
 
 # open window
 window.mainloop()
-
