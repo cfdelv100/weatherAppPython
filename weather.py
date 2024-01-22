@@ -49,10 +49,10 @@ def get_Entry_Value():
         text_label3 = tk.Label(new_window, text=temperature_complete)
         text_label3.pack()
 
-        # TODO: Implement the icons_response to display image 
+        # TODO: Implement the icons_response to display image
         # icons_url = f"{config.ICON_BASE_URL}?appid={config.API_KEY}&q={icon}.png"
-        icons_url = f"{config.ICON_BASE_URL}/{icon}@2x.png"
-        icons_response = requests.get(icons_url, stream=True)
+        icons_url = f"{config.ICON_BASE_URL}/{icon}.png"
+        icons_response = requests.get(icons_url)
         # icon_bytes = BytesIO(icons_response.content)
         # icons_response1 = Image.open(io.BytesIO(icons_response.content))
 
@@ -92,8 +92,9 @@ def get_Entry_Value():
             icon_display = tk.Label(new_window, image=tk_image)
             icon_display.pack()
         else:
-            print(f"Failed to fetch image. Status code {icons_response.status_code}") # TODO: display error as a box
-            
+            error = f"Failed to fetch image. Status code {icons_response.status_code}"
+            error_message = tk.Label(new_window, text=error)
+            error_message.pack()
 
     label_one = tk.Label(window, text=str(["Location:", city_name, "\n"]))
     label_two = tk.Label(window, text=str(["Weather:", weather, "\n"]))
