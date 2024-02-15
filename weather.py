@@ -1,11 +1,12 @@
-import io
+from io import BytesIO
+
 import config
 import requests  # hit end points and gets weather data
-from PIL import Image, ImageTk
 import tkinter as tk
 from tkinter import ttk, RIGHT, LEFT
-from tkinter import messagebox
-from io import BytesIO
+import sqlite3
+from PIL import ImageTk, Image
+
 
 # window
 window = tk.Tk()
@@ -48,61 +49,42 @@ def get_Entry_Value():
         text_label2.pack()
         text_label3 = tk.Label(new_window, text=temperature_complete)
         text_label3.pack()
-
-        # TODO: Implement the icons_response to display image
-        # icons_url = f"{config.ICON_BASE_URL}?appid={config.API_KEY}&q={icon}.png"
-        icons_url = f"{config.ICON_BASE_URL}/{icon}.png"
+        icon2 = data['weather'][0]['id']
+        icons_url = f"{config.ICON_BASE_URL}/{icon2}.png"
+        # icons_url = f"{config.ICON_BASE_URL}?appid={config.API_KEY}&q={e_text}"
         icons_response = requests.get(icons_url)
-        # icon_bytes = BytesIO(icons_response.content)
-        # icons_response1 = Image.open(io.BytesIO(icons_response.content))
+        img = Image.open(BytesIO(icons_response.content))
+        img2 = ImageTk.PhotoImage(img)
 
-        if 200 <= icons_response.status_code <= 232:
-            icons_response1 = Image.open(io.BytesIO(icons_response.content))
-            tk_image = ImageTk.PhotoImage(icons_response1)
-            icon_display = tk.Label(new_window, image=tk_image)
-            icon_display.pack()
-        if 300 <= icons_response.status_code <= 321:
-            icons_response1 = Image.open(io.BytesIO(icons_response.content))
-            tk_image = ImageTk.PhotoImage(icons_response1)
-            icon_display = tk.Label(new_window, image=tk_image)
-            icon_display.pack()
-        if 500 <= icons_response.status_code <= 531:
-            icons_response1 = Image.open(io.BytesIO(icons_response.content))
-            tk_image = ImageTk.PhotoImage(icons_response1)
-            icon_display = tk.Label(new_window, image=tk_image)
-            icon_display.pack()
-        if 600 <= icons_response.status_code <= 622:
-            icons_response1 = Image.open(io.BytesIO(icons_response.content))
-            tk_image = ImageTk.PhotoImage(icons_response1)
-            icon_display = tk.Label(new_window, image=tk_image)
-            icon_display.pack()
-        if 701 <= icons_response.status_code <= 781:
-            icons_response1 = Image.open(io.BytesIO(icons_response.content))
-            tk_image = ImageTk.PhotoImage(icons_response1)
-            icon_display = tk.Label(new_window, image=tk_image)
-            icon_display.pack()
-        if icons_response.status_code == 800:
-            icons_response1 = Image.open(io.BytesIO(icons_response.content))
-            tk_image = ImageTk.PhotoImage(icons_response1)
-            icon_display = tk.Label(new_window, image=tk_image)
-            icon_display.pack()
-        if 801 <= icons_response.status_code <= 804:
-            icons_response1 = Image.open(io.BytesIO(icons_response.content))
-            tk_image = ImageTk.PhotoImage(icons_response1)
-            icon_display = tk.Label(new_window, image=tk_image)
-            icon_display.pack()
-        else:
-            error = f"Failed to fetch image. Status code {icons_response.status_code}"
-            error_message = tk.Label(new_window, text=error)
-            error_message.pack()
 
-    label_one = tk.Label(window, text=str(["Location:", city_name, "\n"]))
-    label_two = tk.Label(window, text=str(["Weather:", weather, "\n"]))
-    label_three = tk.Label(window, text=str(["Temperature", "The current temperature is: ", temperature, "celsius"]))
-    label_one.place(x=60, y=100)
-    label_two.place(x=60, y=150)
-    label_three.place(x=60, y=200)
+        print(icon2)
+        if 200 <= icon2 <= 232:
+            icon_display = tk.Label(new_window, image=icon)
+            icon_display.pack()
+        if 300 <= icon2 <= 321:
+            icon_display = tk.Label(new_window, image=icon)
+            icon_display.pack()
+        if 500 <= icon2 <= 531:
+            icon_display = tk.Label(new_window, image=icon)
+            icon_display.pack()
+        if 600 <= icon2 <= 622:
+            icon_display = tk.Label(new_window, image=icon)
+            icon_display.pack()
+        if 701 <= icon2 <= 781:
+            icon_display = tk.Label(new_window, image=icon)
+            icon_display.pack()
+        if icon2 == 800:
 
+            icon_display = tk.Label(new_window, image=img2)
+            icon_display.pack()
+
+
+  #  label_one = tk.Label(window, text=str(["Location:", city_name, "\n"]))
+  #  label_two = tk.Label(window, text=str(["Weather:", weather, "\n"]))
+  #  label_three = tk.Label(window, text=str(["Temperature:", "The current temperature is: ", temperature, "celsius."]))
+  #  label_one.place(x=60, y=100)
+  #  label_two.place(x=60, y=150)
+  #  label_three.place(x=60, y=200)
     button2 = tk.Button(window, text="Press Here to Pop Up Weather Window", command=lambda: create_text_window())
     button2.place(x=100, y=400)
 
