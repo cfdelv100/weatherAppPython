@@ -16,16 +16,42 @@ class WeatherApp:
         self.window = tk.Tk()
         self.window.title('Weather & Airport Info App')
         self.window.geometry('900x600')
-        self.window['background'] = 'gray'
+        # Define color scheme
+        self.colors = {
+            'primary': '#2c3e50',  # Dark blue-gray
+            'secondary': '#3498db',  # Bright blue
+            'accent': '#e74c3c',  # Red
+            'light': '#ecf0f1',  # Light gray
+            'dark': '#34495e',  # Darker blue-gray
+            'success': '#2ecc71',  # Green
+            'warning': '#f39c12',  # Orange
+            'bg': '#f5f7fa'  # Light background
+        }
+
+        # Apply theme colors
+        self.window['background'] = self.colors['bg']
+        self.style = ttk.Style()
+        self.style.configure('TFrame', background=self.colors['bg'])
+        self.style.configure('TLabel', background=self.colors['bg'], foreground=self.colors['primary'])
+        self.style.configure('TButton', background=self.colors['secondary'], foreground=self.colors['dark'])
+        self.style.map('TButton',
+                       background=[('active', self.colors['dark'])],
+                       foreground=[('active', self.colors['light'])])
+
+        # Create custom styles
+        self.style.configure('Header.TLabel', font=('Arial', 16, 'bold'), foreground=self.colors['primary'])
+        self.style.configure('Title.TLabel', font=('Arial', 14, 'bold'), foreground=self.colors['dark'])
+        self.style.configure('Secondary.TButton', background=self.colors['accent'])
+        self.style.configure('Success.TButton', background=self.colors['success'])
 
         # API configuration
         self.WEATHER_BASE_URL = config.BASE_URL
-        self.WEATHER_API_KEY = config.API_KEY  # Replace with config.API_KEY
+        self.WEATHER_API_KEY = config.API_KEY
         self.WEATHER_ICON_BASE_URL = config.ICON_BASE_URL
 
         # Airport API configuration
-        self.AIRPORT_API_URL = "https://api.example.com/airports"  # Replace with actual airport API URL
-        self.AIRPORT_API_KEY = "your_airport_api_key"  # Replace with actual API key
+        self.AIRPORT_API_URL = "https://api.example.com/airports"
+        self.AIRPORT_API_KEY = "your_airport_api_key"
 
         # Create database and tables if they don't exist
         self.initialize_database()
@@ -626,3 +652,7 @@ class WeatherApp:
 
 if __name__ == '__main__':
     WeatherApp()
+
+        # Show login screen
+        self.setup_login_ui()
+        self.window.mainloop()
