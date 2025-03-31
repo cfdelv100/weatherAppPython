@@ -9,40 +9,27 @@ import threading
 import json
 import config
 
-
 class WeatherApp:
     def __init__(self):
         # Initialize main window
         self.window = tk.Tk()
         self.window.title('Weather & Airport Info App')
         self.window.geometry('900x600')
-        # Define color scheme
-        self.colors = {
-            'primary': '#2c3e50',  # Dark blue-gray
-            'secondary': '#3498db',  # Bright blue
-            'accent': '#e74c3c',  # Red
-            'light': '#ecf0f1',  # Light gray
-            'dark': '#34495e',  # Darker blue-gray
-            'success': '#2ecc71',  # Green
-            'warning': '#f39c12',  # Orange
-            'bg': '#f5f7fa'  # Light background
+        # Theme configuration
+        self.dark_theme = {
+            'bg': '#121212',
+            'fg': '#FFFFFF',
+            'button_bg': '#333333',
+            'button_fg': '#FFFFFF',
+            'entry_bg': '#2A2A2A',
+            'entry_fg': '#FFFFFF',
+            'frame_bg': '#1E1E1E',
+            'highlight_bg': '#3700B3',
+            'accent_color': '#BB86FC'
         }
 
-        # Apply theme colors
-        self.window['background'] = self.colors['bg']
-        self.style = ttk.Style()
-        self.style.configure('TFrame', background=self.colors['bg'])
-        self.style.configure('TLabel', background=self.colors['bg'], foreground=self.colors['primary'])
-        self.style.configure('TButton', background=self.colors['secondary'], foreground=self.colors['dark'])
-        self.style.map('TButton',
-                       background=[('active', self.colors['dark'])],
-                       foreground=[('active', self.colors['light'])])
-
-        # Create custom styles
-        self.style.configure('Header.TLabel', font=('Arial', 16, 'bold'), foreground=self.colors['primary'])
-        self.style.configure('Title.TLabel', font=('Arial', 14, 'bold'), foreground=self.colors['dark'])
-        self.style.configure('Secondary.TButton', background=self.colors['accent'])
-        self.style.configure('Success.TButton', background=self.colors['success'])
+        # Applying dark theme
+        self.apply_dark_theme()
 
         # API configuration
         self.WEATHER_BASE_URL = config.BASE_URL
@@ -59,6 +46,33 @@ class WeatherApp:
         # Show login screen
         self.setup_login_ui()
         self.window.mainloop()
+
+    def apply_dark_theme(self):
+        """Apply dark theme to the application"""
+        style = ttk.Style()
+        style.theme_use('clam')  # Use clam as base theme
+
+        # Configure ttk styles
+        style.configure('TFrame', background=self.dark_theme['bg'])
+        style.configure('TLabel', background=self.dark_theme['bg'], foreground=self.dark_theme['fg'])
+        style.configure('TButton', background=self.dark_theme['button_bg'], foreground=self.dark_theme['button_fg'])
+        style.configure('TEntry', fieldbackground=self.dark_theme['entry_bg'], foreground=self.dark_theme['entry_fg'])
+        style.configure('TNotebook', background=self.dark_theme['bg'])
+        style.configure('TNotebook.Tab', background=self.dark_theme['button_bg'], foreground=self.dark_theme['fg'],
+                        padding=[10, 2])
+        style.map('TNotebook.Tab', background=[('selected', self.dark_theme['highlight_bg'])])
+        style.configure('Treeview', background=self.dark_theme['entry_bg'], foreground=self.dark_theme['fg'],
+                        fieldbackground=self.dark_theme['entry_bg'])
+        style.map('Treeview', background=[('selected', self.dark_theme['accent_color'])],
+                  foreground=[('selected', '#000000')])
+
+        # Configure window
+        self.window['background'] = self.dark_theme['bg']
+
+        # Configure other widgets that might not follow ttk style
+        style.configure('TLabelframe', background=self.dark_theme['frame_bg'])
+        style.configure('TLabelframe.Label', background=self.dark_theme['frame_bg'], foreground=self.dark_theme['fg'])
+        style.configure('TProgressbar', background=self.dark_theme['accent_color'])
 
     def initialize_database(self):
         """Initialize database and create tables if they don't exist"""
@@ -430,8 +444,13 @@ class WeatherApp:
         ttk.Label(result_container, text=f"Temperature: {temperatureFarenheight}°F",
                   font=('Arial', 12)).pack(anchor='w')
 
+        # Display map of weather
+        self.display_weather_map(self.weather_result_frame, self.city_entry.get().strip().upper(), data)
+
         # Display weather icon
         self.display_weather_icon(result_container, icon_code)
+
+
 
     def display_weather_icon(self, parent, icon_code):
         """Display the weather icon"""
@@ -446,6 +465,54 @@ class WeatherApp:
                 icon_label.pack(pady=10)
         except Exception as e:
             print(f"Error loading weather icon: {e}")
+
+
+    # TODO: Implement weather map to reflect general area of the city requested.
+    def display_weather_map(self, parent, airport_code, airport_data):
+        """Display a mock map for the airport location"""
+        map_frame = ttk.LabelFrame(parent, text="Weather Location Map")
+        map_frame.pack(fill="x", padx=10, pady=10)
+
+        # Airport coordinates (mock)
+        weather_coordinates = {
+            "LAX": (100, 150),
+            "JFK": (300, 120),
+            "ORD": (220, 110),
+            "ATL": (240, 150),
+            "DFW": (180, 170)
+        }
+
+        # Create canvas for map
+        map_canvas = tk.Canvas(map_frame, width=400, height=250, bg=self.dark_theme['entry_bg'])
+        map_canvas.pack(padx=10, pady=10)
+
+        # Draw US outline (simplified)
+        map_canvas.create_polygon(
+            50, 120, 100, 80, 300, 80, 350, 120,
+            330, 200, 100, 200, 50, 120,
+            outline='#555555', fill='#333333', width=2
+        )
+
+        # Draw some state boundaries (simplified)
+        map_canvas.create_line(120, 80, 120, 200, fill='#555555')
+        map_canvas.create_line(200, 80, 200, 200, fill='#555555')
+        map_canvas.create_line(280, 80, 280, 200, fill='#555555')
+        map_canvas.create_line(50, 150, 350, 150, fill='#555555')
+
+        # Mark all airports with small circles
+        for code, (x, y) in weather_coordinates.items():
+            # Draw all airports as small dots
+            map_canvas.create_oval(x - 3, y - 3, x + 3, y + 3, fill='#777777')
+            map_canvas.create_text(x, y + 15, text=code, fill='#777777', font=('Arial', 8))
+
+        # Highlight the selected airport
+        if airport_code in weather_coordinates:
+            x, y = weather_coordinates[airport_code]
+            map_canvas.create_oval(x - 8, y - 8, x + 8, y + 8, outline=self.dark_theme['accent_color'], width=2)
+            map_canvas.create_oval(x - 4, y - 4, x + 4, y + 4, fill=self.dark_theme['accent_color'])
+            map_canvas.create_text(x, y - 15, text=airport_data['name'], fill=self.dark_theme['accent_color'],
+                                   font=('Arial', 9))
+
 
     def get_airport_data(self, search_type):
         """Get airport and airline data based on search criteria"""
@@ -592,6 +659,51 @@ class WeatherApp:
 
         return airport_data.get(airport_code, {})
 
+    def display_airport_map(self, parent, airport_code, airport_data):
+        """Display a mock map for the airport location"""
+        map_frame = ttk.LabelFrame(parent, text="Airport Location Map")
+        map_frame.pack(fill="x", padx=10, pady=10)
+
+        # Airport coordinates (mock)
+        airport_coordinates = {
+            "LAX": (100, 150),
+            "JFK": (300, 120),
+            "ORD": (220, 110),
+            "ATL": (240, 150),
+            "DFW": (180, 170)
+        }
+
+        # Create canvas for map
+        map_canvas = tk.Canvas(map_frame, width=400, height=250, bg=self.dark_theme['entry_bg'])
+        map_canvas.pack(padx=10, pady=10)
+
+        # Draw US outline (simplified)
+        map_canvas.create_polygon(
+            50, 120, 100, 80, 300, 80, 350, 120,
+            330, 200, 100, 200, 50, 120,
+            outline='#555555', fill='#333333', width=2
+        )
+
+        # Draw some state boundaries (simplified)
+        map_canvas.create_line(120, 80, 120, 200, fill='#555555')
+        map_canvas.create_line(200, 80, 200, 200, fill='#555555')
+        map_canvas.create_line(280, 80, 280, 200, fill='#555555')
+        map_canvas.create_line(50, 150, 350, 150, fill='#555555')
+
+        # Mark all airports with small circles
+        for code, (x, y) in airport_coordinates.items():
+            # Draw all airports as small dots
+            map_canvas.create_oval(x - 3, y - 3, x + 3, y + 3, fill='#777777')
+            map_canvas.create_text(x, y + 15, text=code, fill='#777777', font=('Arial', 8))
+
+        # Highlight the selected airport
+        if airport_code in airport_coordinates:
+            x, y = airport_coordinates[airport_code]
+            map_canvas.create_oval(x - 8, y - 8, x + 8, y + 8, outline=self.dark_theme['accent_color'], width=2)
+            map_canvas.create_oval(x - 4, y - 4, x + 4, y + 4, fill=self.dark_theme['accent_color'])
+            map_canvas.create_text(x, y - 15, text=airport_data['name'], fill=self.dark_theme['accent_color'],
+                                   font=('Arial', 9))
+
     def display_airport_data(self, data):
         """Display the airport and airline data"""
         if not data:
@@ -609,6 +721,10 @@ class WeatherApp:
         ttk.Label(airport_info,
                   text=f"Location: {data['city']}, {data['country']}",
                   font=('Arial', 12)).pack(anchor='w', padx=10, pady=5)
+
+        # Display the mock map
+        self.display_airport_map(self.airline_result_frame, self.airport_code_entry.get().strip().upper(), data)
+
 
         # Create airline section
         if "airlines" in data and data["airlines"]:
@@ -652,7 +768,3 @@ class WeatherApp:
 
 if __name__ == '__main__':
     WeatherApp()
-
-        # Show login screen
-        self.setup_login_ui()
-        self.window.mainloop()
