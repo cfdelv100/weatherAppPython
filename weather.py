@@ -4,7 +4,10 @@ import requests
 import tkinter as tk
 from tkinter import ttk, messagebox
 from PIL import ImageTk, Image
-import urllib.request
+from datetime import datetime, timezone, timedelta
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from mpl_toolkits.basemap import Basemap
 import threading
 import json
 import config
@@ -12,6 +15,7 @@ import config
 class WeatherApp:
     def __init__(self):
         # Initialize main window
+
         self.window = tk.Tk()
         self.window.title('Weather & Airport Info App')
         self.window.geometry('900x600')
@@ -34,7 +38,9 @@ class WeatherApp:
         # API configuration
         self.WEATHER_BASE_URL = config.BASE_URL
         self.WEATHER_API_KEY = config.API_KEY
-        self.WEATHER_ICON_BASE_URL = config.ICON_BASE_URL
+        self.WEATHER_ICON_BASE_URL = config.WEATHER_ICON_BASE_URL
+        self.GEO_API_KEY = config.GEO_API_KEY
+        self.GEO_BASE_URL = config.GEO_BASE_URL
 
         # Airport API configuration
         self.AIRPORT_API_URL = "https://api.example.com/airports"
@@ -422,6 +428,10 @@ class WeatherApp:
 
         threading.Thread(target=fetch_weather_data, daemon=True).start()
 
+        # TODO: Fetch and correct geo api key and locations
+        def fetch_geo_data():
+            return
+
     def display_weather(self, data):
         """Display the weather data in the result frame"""
         # Extract data
@@ -430,6 +440,11 @@ class WeatherApp:
         temperature = round(data["main"]["temp"] - 273.15)
         temperatureFarenheight = round((temperature * (9/5)) + 32)
         icon_code = data['weather'][0]['icon']
+        location_time = data['timezone']
+        utc_now = datetime.now(timezone.utc)
+        local_time = utc_now.strftime("%Y-%m-%d %H:%M:%S") 
+        humidity = data['main']['humidity']
+        sea_level = data['main']['sea_level']
 
         # Create results display
         result_container = ttk.Frame(self.weather_result_frame)
@@ -437,11 +452,17 @@ class WeatherApp:
 
         ttk.Label(result_container, text=f"Location: {city_name}",
                   font=('Arial', 14, 'bold')).pack(anchor='w')
+        ttk.Label(result_container, text=f"The current time is: {local_time}",
+                  font=('Arial', 12)).pack(anchor='w')
         ttk.Label(result_container, text=f"Weather: {weather_desc}",
                   font=('Arial', 12)).pack(anchor='w')
         ttk.Label(result_container, text=f"Temperature: {temperature}°C",
                   font=('Arial', 12)).pack(anchor='w')
         ttk.Label(result_container, text=f"Temperature: {temperatureFarenheight}°F",
+                  font=('Arial', 12)).pack(anchor='w')
+        ttk.Label(result_container, text=f"Sea Level: {sea_level}",
+                  font=('Arial', 12)).pack(anchor='w')
+        ttk.Label(result_container, text=f"The current humidity is : {humidity}",
                   font=('Arial', 12)).pack(anchor='w')
 
         # Display map of weather
@@ -467,7 +488,10 @@ class WeatherApp:
             print(f"Error loading weather icon: {e}")
 
 
-    # TODO: Implement weather map to reflect general area of the city requested.
+    # TODO: Implement weather map to reflect general area of the city requested, implement world map into new display
+    # TODO: Implement with geo units from api call
+
+
     def display_weather_map(self, parent, airport_code, airport_data):
         """Display a mock map for the airport location"""
         map_frame = ttk.LabelFrame(parent, text="Weather Location Map")
@@ -482,35 +506,88 @@ class WeatherApp:
             "DFW": (180, 170)
         }
 
+        def show_map(self, event):
+            country = self.selected_country.get()
+            if self.fig:
+                self.fig.clear()
+            self.plot_country_map(country)
+
+        def plot_country_map(self, country):
+            self.map_cavas.delete("all")
+            self.fig = Figure(figsize=(6, 4))
+            ax = self.fig.add_subplot(111)
+            map = Basemap(projection='mill', llcrnrlat=-60, urcrnlat=85, llcrnrlon=-180, urcrnlon=180, ax=ax)
+            map.drawcountries(color='black', linewidth=0.5)
+            map.drawcoastlines(color='blue')
+            map.fillcontinents(color='lightgreen', lake_color='aqua')
+            map.drawmapboundary(fill_color='aqua')
+
+            # get country coordinates
+            if country == 'USA':
+                lat, lon = 37.0902, -95.7129
+            elif country == 'Canada':
+                lat, lon = 56.1304, -106.3468
+            elif country == 'Australia':
+                lat, lon = -25.2744, 133.7751
+            elif country == 'India':
+                lat, lon = 20.5937, 78.9629
+
+            x, y = map(lon, lat)
+            map.plot(x, y, market='o', marketsize=5, color='red')
+
+            canvas1 = FigureCanvasTkAgg(self.fig, master=self.map_cavas)
+            canvas1.draw()
+            canvas1.get_tk_widget().pack()
+
+
+
+        # beginning of map listing for world map
+        self.countries = ['USA','Canada','Australia','India']
+        self.selected_country = tk.StringVar()
+        self.country_dropdown = ttk.Combobox(parent, textvariable=self.selected_country, values=self.countries)
+        self.country_dropdown.grid(row=0, column=0, padx=10, pady=10)
+        self.country_dropdown.bind("<<ComboboxSelected>>", self.show_map)
+        self.fig = None
+
+
+
+
+
+        # canvas for world map
+        map_world_canvas = tk.Canvas(map_frame, width=400, height=250, bg=self.dark_theme['entry_bg'])
+        map_world_canvas.pack(padx=10, pady=10)
+
         # Create canvas for map
-        map_canvas = tk.Canvas(map_frame, width=400, height=250, bg=self.dark_theme['entry_bg'])
-        map_canvas.pack(padx=10, pady=10)
+        self.map_canvas = tk.Canvas(map_frame, width=400, height=250, bg=self.dark_theme['entry_bg'])
+        self.map_canvas.pack(padx=10, pady=10)
+
+
 
         # Draw US outline (simplified)
-        map_canvas.create_polygon(
+        self.map_canvas.create_polygon(
             50, 120, 100, 80, 300, 80, 350, 120,
             330, 200, 100, 200, 50, 120,
             outline='#555555', fill='#333333', width=2
         )
 
         # Draw some state boundaries (simplified)
-        map_canvas.create_line(120, 80, 120, 200, fill='#555555')
-        map_canvas.create_line(200, 80, 200, 200, fill='#555555')
-        map_canvas.create_line(280, 80, 280, 200, fill='#555555')
-        map_canvas.create_line(50, 150, 350, 150, fill='#555555')
+        self.map_canvas.create_line(120, 80, 120, 200, fill='#555555')
+        self. map_canvas.create_line(200, 80, 200, 200, fill='#555555')
+        self.map_canvas.create_line(280, 80, 280, 200, fill='#555555')
+        self. map_canvas.create_line(50, 150, 350, 150, fill='#555555')
 
         # Mark all airports with small circles
         for code, (x, y) in weather_coordinates.items():
             # Draw all airports as small dots
-            map_canvas.create_oval(x - 3, y - 3, x + 3, y + 3, fill='#777777')
-            map_canvas.create_text(x, y + 15, text=code, fill='#777777', font=('Arial', 8))
+            self.map_canvas.create_oval(x - 3, y - 3, x + 3, y + 3, fill='#777777')
+            self.map_canvas.create_text(x, y + 15, text=code, fill='#777777', font=('Arial', 8))
 
         # Highlight the selected airport
         if airport_code in weather_coordinates:
             x, y = weather_coordinates[airport_code]
-            map_canvas.create_oval(x - 8, y - 8, x + 8, y + 8, outline=self.dark_theme['accent_color'], width=2)
-            map_canvas.create_oval(x - 4, y - 4, x + 4, y + 4, fill=self.dark_theme['accent_color'])
-            map_canvas.create_text(x, y - 15, text=airport_data['name'], fill=self.dark_theme['accent_color'],
+            self.map_canvas.create_oval(x - 8, y - 8, x + 8, y + 8, outline=self.dark_theme['accent_color'], width=2)
+            self.map_canvas.create_oval(x - 4, y - 4, x + 4, y + 4, fill=self.dark_theme['accent_color'])
+            self.map_canvas.create_text(x, y - 15, text=airport_data['name'], fill=self.dark_theme['accent_color'],
                                    font=('Arial', 9))
 
 
@@ -768,3 +845,4 @@ class WeatherApp:
 
 if __name__ == '__main__':
     WeatherApp()
+
